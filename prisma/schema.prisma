@@ -14,13 +14,12 @@ datasource db {
 }
 
 model Machine {
-  id        String      @id @default(uuid())
+  id        String   @id @default(uuid())
   name      String
   location  String
   status    Status
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  telemetry Telemetry[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("machine")
 }
@@ -29,15 +28,4 @@ enum Status {
   OPERATING
   MAINTENANCE
   OFF
-}
-
-model Telemetry {
-  id        String   @id @default(uuid())
-  machineId String
-  machine   Machine  @relation(fields: [machineId], references: [id])
-  timestamp DateTime @default(now())
-  location  String
-  status    Status
-
-  @@map("telemetry")
 }
