@@ -1,7 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../infra/prisma/prisma.service';
-import { IMachinesRepository } from './interfaces';
-import { Prisma } from '@prisma/client';
+import {
+  IMachinesRepository,
+  TCreateMachine,
+  TUpdateMachine,
+} from './interfaces';
 
 @Injectable()
 export class MachinesRepository implements IMachinesRepository {
@@ -9,40 +12,31 @@ export class MachinesRepository implements IMachinesRepository {
   private readonly prismaService: PrismaService;
 
   async findAll(): Promise<any> {
-    return this.prismaService.machine.findMany({
-      select: {
-        telemetry: true,
-      },
-    });
+    return this.prismaService.machine.findMany();
   }
 
-  async create(data: Prisma.MachineCreateInput): Promise<any> {
+  async create(data: TCreateMachine): Promise<any> {
     return this.prismaService.machine.create({ data });
   }
 
-  // async findById(roundId: string): Promise<any> {
-  //   return this.prismaService.leaderboard.findFirst({
-  //     where: { roundId },
-  //     select: {
-  //       Prizes: {
-  //         select: {
-  //           position: true,
-  //           playerWallet: true,
-  //           prizeAmount: true,
-  //         },
-  //       },
-  //       Round: {
-  //         select: {
-  //           amount: true,
-  //         },
-  //       },
-  //       isPaid: true,
-  //       id: true,
-  //     },
-  //   });
-  // }
+  async update(id: string, fieldsToUpdate: TUpdateMachine) {
+    const updateResponse = await this.prismaService.machine.update({
+      where: { id },
+      data: fieldsToUpdate,
+    });
 
-  // async find(params: Prisma.MachineFindManyArgs): Promise<any> {
-  //   return this.prismaService.leaderboard.findMany(params);
-  // }
+    return updateResponse;
+  }
+
+  async findByName(name: string) {
+    return this.prismaService.machine.findFirst({
+      where: { name },
+    });
+  }
+
+  async findById(id: string) {
+    return this.prismaService.machine.findUnique({
+      where: { id },
+    });
+  }
 }

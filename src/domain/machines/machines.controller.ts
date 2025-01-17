@@ -1,6 +1,14 @@
-import { Body, Controller, Get, Inject, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Inject,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { MachinesService } from './services/machine.service';
-import { TPrismaMachineInput } from './interfaces';
+import { TCreateMachine, TUpdateMachine } from './interfaces';
 
 @Controller('machines')
 export class MachinesController {
@@ -12,26 +20,18 @@ export class MachinesController {
     return this.machineService.executeFindAll();
   }
 
-  @Post('/create')
-  async create(@Body() machineInput: TPrismaMachineInput) {
-    return this.machineService.executeCreateMachine(machineInput);
+  @Post('create')
+  async create(@Body() machineInput: TCreateMachine) {
+    return this.machineService.executeCreate(machineInput);
   }
 
-  // @Get()
-  // findAll(@Query('status') status?: string) {
-  //   if (status) {
-  //     return this.machineService.filterMachinesByStatus(status as any);
-  //   }
-  //   return this.machineService.findAllMachines();
-  // }
+  @Patch('update/:id')
+  async update(@Param('id') machineId: string, @Body() status: TUpdateMachine) {
+    return this.machineService.executeUpdateStatus(machineId, status);
+  }
 
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.machineService.findMachineById(id);
-  // }
-
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateMachineDto: UpdateMachineDto) {
-  //   return this.machineService.updateMachine(id, updateMachineDto);
-  // }
+  @Get(':name')
+  async findByName(@Param('name') name: string) {
+    return this.machineService.executeFindByName(name);
+  }
 }
