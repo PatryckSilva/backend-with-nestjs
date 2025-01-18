@@ -10,11 +10,17 @@ import {
   TCreateMachine,
   TUpdateMachine,
 } from '../interfaces';
+import { Cron } from '@nestjs/schedule';
+import { SocketGateway } from 'src/socketgateway/gateway';
+import { MachinesValidationFieldsHelper } from '../helpers/machines-validation-fields.helpers';
 
 @Injectable()
 export class MachinesService {
   @Inject('IMachinesRepository')
   private readonly machinesRepository: IMachinesRepository;
+
+  @Inject(SocketGateway)
+  private readonly socketGateway: SocketGateway;
 
   async executeFindAll() {
     const response = await this.machinesRepository.findAll();
@@ -26,9 +32,12 @@ export class MachinesService {
   async executeCreate(machineBody: TCreateMachine) {
     const { location, name, status } = machineBody;
 
-    this.validateField(name, 'O Nome da máquina');
-    this.validateField(location, 'A localização da máquina');
-    this.validateField(status, 'O status da Máquina');
+    MachinesValidationFieldsHelper.validateField(name, 'O Nome da máquina');
+    MachinesValidationFieldsHelper.validateField(
+      location,
+      'A localização da máquina',
+    );
+    MachinesValidationFieldsHelper.validateField(status, 'O status da Máquina');
 
     const existingMachineByName =
       await this.machinesRepository.findByName(name);
@@ -38,7 +47,7 @@ export class MachinesService {
       throw new BadRequestException(message);
     }
 
-    this.executeValidateStatusFieldType(status as string);
+    MachinesValidationFieldsHelper.validateStatusFieldType(status as string);
 
     const machine = await this.machinesRepository.create(machineBody);
 
@@ -55,7 +64,10 @@ export class MachinesService {
     fieldsToUpdate: TUpdateMachine;
   }) {
     if (!machineId) {
-      this.validateField(machineId, 'O Id da máquina');
+      MachinesValidationFieldsHelper.validateField(
+        machineId,
+        'O Id da máquina',
+      );
     }
 
     const machineExists = await this.machinesRepository.findById(machineId);
@@ -78,7 +90,7 @@ export class MachinesService {
       delete fieldsToUpdate.location;
     }
 
-    this.executeValidateStatusFieldType(status as string);
+    MachinesValidationFieldsHelper.validateStatusFieldType(status as string);
 
     const updatedMachine = await this.machinesRepository.update(
       machineId,
@@ -128,17 +140,30 @@ export class MachinesService {
     return machines[randomIndex];
   }
 
-  validateField(field: unknown, fieldName: string) {
-    if (!field) {
-      const message = `${fieldName} é obrigatório`;
-      throw new BadRequestException(message);
-    }
-  }
+  @Cron('*/5 * * * * *')
+  async simulateTelemetry() {
+    const machine = await this.findRandomMachine();
+    if (!machine) return;
 
-  executeValidateStatusFieldType(status: string) {
-    if (status && !Object.values(StatusType).includes(status as StatusType)) {
-      const message = `Status inválido: ${status}. Status permitidos: ${Object.values(StatusType).join(', ')}`;
-      throw new BadRequestException(message);
-    }
+    const updatedData = {
+      location: `Random-Loc-${Math.floor(Math.random() * 100)}`,
+      status: ['OPERATING', 'MAINTENANCE', 'OFF'][
+        Math.floor(Math.random() * 3)
+      ] as StatusType,
+    };
+
+    await this.executeUpdateStatus({
+      machineId: machine.id,
+      fieldsToUpdate: updatedData,
+    });
+
+    this.socketGateway.server.emit('newUpdate', {
+      machineId: machine.id,
+      ...updatedData,
+    });
+
+    console.log(
+      `Machine ${machine.id} updated: Location=${updatedData.location}, Status=${updatedData.status}`,
+    );
   }
 }

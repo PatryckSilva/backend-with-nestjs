@@ -1,28 +1,19 @@
-import { Inject } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
-  MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
-  SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
-import { TUpdateMachine } from 'src/domain/machines/interfaces';
-import { MachinesService } from 'src/domain/machines/services/machine.service';
 
-type TDataToUpdate = {
-  machineId: string;
-  fieldsToUpdate: TUpdateMachine;
-};
 @WebSocketGateway({
   cors: {
     origin: '*',
   },
 })
+@Injectable()
 export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  @Inject(MachinesService)
-  private readonly machineService: MachinesService;
   @WebSocketServer()
   server: Server;
 
@@ -32,28 +23,5 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   handleDisconnect(client: Socket) {
     console.log('user disconnected', client.id);
-  }
-
-  @SubscribeMessage('newUpdate')
-  async updateMachine(
-    @MessageBody()
-    data: string,
-  ) {
-    try {
-      const dataToSend: TDataToUpdate = JSON.parse(data);
-
-      const responseUpdate =
-        await this.machineService.executeUpdateStatus(dataToSend);
-
-      this.server.emit('newUpdate', {
-        msg: 'received new Update',
-        content: responseUpdate.updatedMachine,
-      });
-    } catch (e) {
-      this.server.emit('newUpdate', {
-        msg: 'Error updating machine',
-        error: e.message,
-      });
-    }
   }
 }

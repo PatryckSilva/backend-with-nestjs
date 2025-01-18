@@ -4,10 +4,13 @@ import { PrismaService } from '../../infra/prisma/prisma.service';
 import { MachinesRepository } from './machines.repository';
 import { MachinesController } from './machines.controller';
 import { MachinesService } from './services/machine.service';
+import { SocketGateway } from 'src/socketgateway/gateway';
+import { SocketGatewayModule } from 'src/socketgateway/gateway.module';
 
 @Module({
-  imports: [InfraModule],
+  imports: [InfraModule, SocketGatewayModule],
   providers: [
+    SocketGateway,
     MachinesService,
     PrismaService,
     {
