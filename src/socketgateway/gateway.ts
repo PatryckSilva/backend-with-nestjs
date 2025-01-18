@@ -11,6 +11,10 @@ import { Socket, Server } from 'socket.io';
 import { TUpdateMachine } from 'src/domain/machines/interfaces';
 import { MachinesService } from 'src/domain/machines/services/machine.service';
 
+type TDataToUpdate = {
+  machineId: string;
+  fieldsToUpdate: TUpdateMachine;
+};
 @WebSocketGateway({
   cors: {
     origin: '*',
@@ -36,14 +40,14 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     data: string,
   ) {
     try {
-      const dataToSend = JSON.parse(data);
+      const dataToSend: TDataToUpdate = JSON.parse(data);
 
       const responseUpdate =
         await this.machineService.executeUpdateStatus(dataToSend);
 
       this.server.emit('newUpdate', {
         msg: 'received new Update',
-        content: responseUpdate,
+        content: responseUpdate.updatedMachine,
       });
     } catch (e) {
       this.server.emit('newUpdate', {
