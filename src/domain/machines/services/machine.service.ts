@@ -120,6 +120,14 @@ export class MachinesService {
     return { response };
   }
 
+  async findRandomMachine() {
+    const { machines } = await this.executeFindAll();
+    if (machines.length === 0) return null;
+
+    const randomIndex = Math.floor(Math.random() * machines.length);
+    return machines[randomIndex];
+  }
+
   validateField(field: unknown, fieldName: string) {
     if (!field) {
       const message = `${fieldName} é obrigatório`;
