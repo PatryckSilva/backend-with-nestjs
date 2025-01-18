@@ -47,7 +47,13 @@ export class MachinesService {
     };
   }
 
-  async executeUpdateStatus(machineId: string, fieldsToUpdate: TUpdateMachine) {
+  async executeUpdateStatus({
+    machineId,
+    fieldsToUpdate,
+  }: {
+    machineId: string;
+    fieldsToUpdate: TUpdateMachine;
+  }) {
     if (!machineId) {
       this.validateField(machineId, 'O Id da máquina');
     }

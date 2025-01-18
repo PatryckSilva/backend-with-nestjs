@@ -26,8 +26,14 @@ export class MachinesController {
   }
 
   @Patch('update/:id')
-  async update(@Param('id') machineId: string, @Body() status: TUpdateMachine) {
-    return this.machineService.executeUpdateStatus(machineId, status);
+  async update(
+    @Param('id') machineId: string,
+    @Body() fieldsToUpdate: TUpdateMachine,
+  ) {
+    return this.machineService.executeUpdateStatus({
+      machineId,
+      fieldsToUpdate,
+    });
   }
 
   @Get(':name')
