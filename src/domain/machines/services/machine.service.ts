@@ -57,6 +57,10 @@ export class MachinesService {
 
     const machine = await this.machinesRepository.create(machineBody);
 
+    const allMachines = await this.executeFindAll();
+
+    this.socketGateway.server.emit('requestMachineList', allMachines);
+
     return machine;
   }
 
