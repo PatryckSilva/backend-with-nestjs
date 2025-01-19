@@ -144,7 +144,7 @@ export class MachinesService {
     return response[randomIndex];
   }
 
-  @Cron('*/5 * * * * *')
+  // @Cron('*/5 * * * * *')
   async simulateTelemetry() {
     const machine = await this.findRandomMachine();
     if (!machine) return;
@@ -165,6 +165,10 @@ export class MachinesService {
       machineId: machine.id,
       ...updatedData,
     });
+
+    const allMachines = await this.executeFindAll();
+
+    this.socketGateway.server.emit('requestMachineList', allMachines);
 
     console.log(
       `Machine ${machine.id} updated: Location=${updatedData.location}, Status=${updatedData.status}`,
