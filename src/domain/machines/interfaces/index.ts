@@ -15,6 +15,7 @@ export interface IMachinesRepository {
   update(id: string, fieldsToUpdate: TUpdateMachine): any;
   findByName(name: string): any;
   findById(id: string): any;
+  findByStatus(status: StatusType): any;
 }
 
 export type MachineResponse = {

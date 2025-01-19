@@ -22,11 +22,17 @@ export class MachinesService {
   @Inject(SocketGateway)
   private readonly socketGateway: SocketGateway;
 
-  async executeFindAll() {
-    const response = await this.machinesRepository.findAll();
-    return {
-      machines: response,
-    };
+  async executeFindAll(status?: string) {
+    if (!status) {
+      const response = await this.machinesRepository.findAll();
+      return response;
+    }
+
+    const response = await this.machinesRepository.findByStatus(
+      status as StatusType,
+    );
+
+    return response;
   }
 
   async executeCreate(machineBody: TCreateMachine) {
@@ -51,9 +57,7 @@ export class MachinesService {
 
     const machine = await this.machinesRepository.create(machineBody);
 
-    return {
-      machine,
-    };
+    return machine;
   }
 
   async executeUpdateStatus({
@@ -97,7 +101,7 @@ export class MachinesService {
       fieldsToUpdate,
     );
 
-    return { updatedMachine };
+    return updatedMachine;
   }
 
   async executeFindByName(name: string) {
@@ -113,7 +117,7 @@ export class MachinesService {
       );
     }
 
-    return { response };
+    return response;
   }
 
   async executeFindById(id: string) {
@@ -129,15 +133,15 @@ export class MachinesService {
       );
     }
 
-    return { response };
+    return response;
   }
 
   async findRandomMachine() {
-    const { machines } = await this.executeFindAll();
-    if (machines.length === 0) return null;
+    const response = await this.executeFindAll();
+    if (response.length === 0) return null;
 
-    const randomIndex = Math.floor(Math.random() * machines.length);
-    return machines[randomIndex];
+    const randomIndex = Math.floor(Math.random() * response.length);
+    return response[randomIndex];
   }
 
   @Cron('*/5 * * * * *')

@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { MachinesService } from './services/machine.service';
 import { TCreateMachine, TUpdateMachine } from './interfaces';
@@ -16,8 +17,8 @@ export class MachinesController {
   private readonly machineService: MachinesService;
 
   @Get()
-  async findAll() {
-    return this.machineService.executeFindAll();
+  async findAll(@Query('status') status?: string) {
+    return this.machineService.executeFindAll(status);
   }
 
   @Post('create')
@@ -36,8 +37,13 @@ export class MachinesController {
     });
   }
 
-  @Get(':name')
+  @Get('find-by-name/:name')
   async findByName(@Param('name') name: string) {
     return this.machineService.executeFindByName(name);
+  }
+
+  @Get('find-by-id/:id')
+  async findById(@Param('id') machineId: string) {
+    return this.machineService.executeFindById(machineId);
   }
 }

@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../infra/prisma/prisma.service';
 import {
   IMachinesRepository,
+  StatusType,
   TCreateMachine,
   TUpdateMachine,
 } from './interfaces';
@@ -38,5 +39,9 @@ export class MachinesRepository implements IMachinesRepository {
     return this.prismaService.machine.findUnique({
       where: { id },
     });
+  }
+
+  async findByStatus(status: StatusType) {
+    return this.prismaService.machine.findMany({ where: { status } });
   }
 }
