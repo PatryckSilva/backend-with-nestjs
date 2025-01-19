@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { $Enums, Prisma, Status } from '@prisma/client';
 
 export type TCreateMachine = Pick<
   Prisma.MachineCreateInput,
@@ -10,22 +10,43 @@ export type TUpdateMachine = Pick<
   'location' | 'status'
 >;
 export interface IMachinesRepository {
-  findAll(): Promise<MachineResponse[]>;
-  create(data: TCreateMachine): Promise<MachineResponse>;
-  update(id: string, fieldsToUpdate: TUpdateMachine): any;
-  findByName(name: string): any;
-  findById(id: string): any;
-  findByStatus(status: StatusType): any;
+  findAll(): Promise<TMachineListResponse[]>;
+  create(data: TCreateMachine): Promise<TMachineUpdateOrCreateResponse>;
+  update(
+    id: string,
+    fieldsToUpdate: TUpdateMachine,
+  ): Promise<TMachineUpdateOrCreateResponse>;
+  findByName(name: string): Promise<TSingleMachineWithArgs>;
+  findById(id: string): Promise<TSingleMachineWithArgs>;
+  findByStatus(status: StatusType): Promise<TMachineListResponse[]>;
 }
 
-export type MachineResponse = {
+type TMachineListResponse = {
+  name: string;
+  location: string;
+  status: $Enums.Status;
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type TMachineUpdateOrCreateResponse = {
   id: string;
   name: string;
   location: string;
-  status: StatusType;
-  createdAt: string;
-  updatedAt: string;
+  status: Status;
+  createdAt: Date;
+  updatedAt: Date;
 };
+
+type TSingleMachineWithArgs = {
+  name: string;
+  location: string;
+  status: $Enums.Status;
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+} | null;
 
 export enum StatusType {
   operating = 'OPERATING',

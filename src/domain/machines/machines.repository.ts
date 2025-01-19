@@ -12,11 +12,11 @@ export class MachinesRepository implements IMachinesRepository {
   @Inject(PrismaService)
   private readonly prismaService: PrismaService;
 
-  async findAll(): Promise<any> {
+  async findAll() {
     return this.prismaService.machine.findMany();
   }
 
-  async create(data: TCreateMachine): Promise<any> {
+  async create(data: TCreateMachine) {
     return this.prismaService.machine.create({ data });
   }
 
