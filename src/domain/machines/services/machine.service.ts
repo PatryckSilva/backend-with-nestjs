@@ -13,6 +13,7 @@ import {
 import { Cron } from '@nestjs/schedule';
 import { SocketGateway } from 'src/socketgateway/gateway';
 import { MachinesValidationFieldsHelper } from '../helpers/machines-validation-fields.helpers';
+import { GetRealLocationHelper } from '../helpers/get-real-location.help';
 
 @Injectable()
 export class MachinesService {
@@ -153,19 +154,17 @@ export class MachinesService {
     const machine = await this.findRandomMachine();
     if (!machine) return;
 
-    // TODO: put real location
-    // const randomLat = (Math.random() * 180 - 90).toFixed(6);
-    // const randomLng = (Math.random() * 360 - 180).toFixed(6);
+    const randomLat = (Math.random() * 180 - 90).toFixed(6);
+    const randomLng = (Math.random() * 360 - 180).toFixed(6);
 
-    // const location = await GetRealLocationHelper.getLocation({
-    //   randomLat,
-    //   randomLng,
-    // });
+    const location = await GetRealLocationHelper.getLocation({
+      randomLat,
+      randomLng,
+    });
 
     const updatedData = {
-      // Change Location here
-      location: `Random-Loc-${Math.floor(Math.random() * 100)}`,
-      status: ['OPERATING', 'MAINTENANCE', 'OFF'][
+      location,
+      status: Object.values(StatusType)[
         Math.floor(Math.random() * 3)
       ] as StatusType,
     };

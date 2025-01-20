@@ -4,6 +4,6 @@ import { Controller, Get } from '@nestjs/common';
 export class AppController {
   @Get()
   async getAPI() {
-    return { message: 'test default route ' };
+    return { message: 'API está rodando...' };
   }
 }
