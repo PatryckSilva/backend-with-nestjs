@@ -59,7 +59,7 @@ export class MachinesService {
 
     const allMachines = await this.executeFindAll();
 
-    this.socketGateway.server.emit('requestMachineList', allMachines);
+    this.socketGateway.server.emit('MachineList', allMachines);
 
     return machine;
   }
@@ -148,34 +148,41 @@ export class MachinesService {
     return response[randomIndex];
   }
 
-  // @Cron('*/5 * * * * *')
+  @Cron('*/5 * * * * *')
   async simulateTelemetry() {
     const machine = await this.findRandomMachine();
     if (!machine) return;
 
+    // TODO: put real location
+    // const randomLat = (Math.random() * 180 - 90).toFixed(6);
+    // const randomLng = (Math.random() * 360 - 180).toFixed(6);
+
+    // const location = await GetRealLocationHelper.getLocation({
+    //   randomLat,
+    //   randomLng,
+    // });
+
     const updatedData = {
+      // Change Location here
       location: `Random-Loc-${Math.floor(Math.random() * 100)}`,
       status: ['OPERATING', 'MAINTENANCE', 'OFF'][
         Math.floor(Math.random() * 3)
       ] as StatusType,
     };
 
-    await this.executeUpdateStatus({
+    const updatedMachineResponse = await this.executeUpdateStatus({
       machineId: machine.id,
       fieldsToUpdate: updatedData,
     });
 
-    this.socketGateway.server.emit('newUpdate', {
-      machineId: machine.id,
-      ...updatedData,
+    this.socketGateway.server.emit('newMachineUpdate', {
+      ...updatedMachineResponse,
     });
 
     const allMachines = await this.executeFindAll();
 
-    this.socketGateway.server.emit('requestMachineList', allMachines);
+    this.socketGateway.server.emit('MachineList', allMachines);
 
-    console.log(
-      `Machine ${machine.id} updated: Location=${updatedData.location}, Status=${updatedData.status}`,
-    );
+    console.log(`Machine ${machine.id} updated:  Status=${updatedData.status}`);
   }
 }
