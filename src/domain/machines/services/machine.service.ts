@@ -14,6 +14,7 @@ import { Cron } from '@nestjs/schedule';
 import { SocketGateway } from 'src/socketgateway/gateway';
 import { MachinesValidationFieldsHelper } from '../helpers/machines-validation-fields.helpers';
 import { GetRealLocationHelper } from '../helpers/get-real-location.help';
+import { LoggerService } from 'src/logger/logger.service';
 
 @Injectable()
 export class MachinesService {
@@ -22,6 +23,9 @@ export class MachinesService {
 
   @Inject(SocketGateway)
   private readonly socketGateway: SocketGateway;
+
+  @Inject(LoggerService)
+  private readonly logger: LoggerService;
 
   async executeFindAll(status?: string) {
     if (!status) {
@@ -149,39 +153,63 @@ export class MachinesService {
     return response[randomIndex];
   }
 
+  async getLogs() {
+    const logs = await this.machinesRepository.getMachineLogs();
+    return logs;
+  }
+
   @Cron('*/5 * * * * *')
   async simulateTelemetry() {
-    const machine = await this.findRandomMachine();
-    if (!machine) return;
+    try {
+      const machine = await this.findRandomMachine();
+      if (!machine) {
+        return this.socketGateway.server.emit('MachineList', []);
+      }
 
-    const randomLat = (Math.random() * 180 - 90).toFixed(6);
-    const randomLng = (Math.random() * 360 - 180).toFixed(6);
+      const randomLat = (Math.random() * 180 - 90).toFixed(6);
+      const randomLng = (Math.random() * 360 - 180).toFixed(6);
 
-    const location = await GetRealLocationHelper.getLocation({
-      randomLat,
-      randomLng,
-    });
+      const location = await GetRealLocationHelper.getLocation({
+        randomLat,
+        randomLng,
+      });
 
-    const updatedData = {
-      location,
-      status: Object.values(StatusType)[
-        Math.floor(Math.random() * 3)
-      ] as StatusType,
-    };
+      const updatedData = {
+        // Change Location here
+        location: `Random-Loc-${Math.floor(Math.random() * 100)}`,
+        status: ['OPERATING', 'MAINTENANCE', 'OFF'][
+          Math.floor(Math.random() * 3)
+        ] as StatusType,
+      };
 
-    const updatedMachineResponse = await this.executeUpdateStatus({
-      machineId: machine.id,
-      fieldsToUpdate: updatedData,
-    });
+      const updatedMachineResponse = await this.executeUpdateStatus({
+        machineId: machine.id,
+        fieldsToUpdate: updatedData,
+      });
 
-    this.socketGateway.server.emit('newMachineUpdate', {
-      ...updatedMachineResponse,
-    });
+      this.socketGateway.server.emit('newMachineUpdate', {
+        ...updatedMachineResponse,
+      });
 
-    const allMachines = await this.executeFindAll();
+      const allMachines = await this.executeFindAll();
 
-    this.socketGateway.server.emit('MachineList', allMachines);
+      this.socketGateway.server.emit('MachineList', allMachines);
 
-    console.log(`Machine ${machine.id} updated:  Status=${updatedData.status}`);
+      await this.machinesRepository.createMachineLog(
+        updatedMachineResponse,
+        'atualizado',
+      );
+
+      this.logger.info('Máquinas atualizadas', {
+        timestamp: new Date().toISOString(),
+        machine: updatedMachineResponse,
+      });
+    } catch (err) {
+      const _error = err as Error;
+      this.logger.error('Erro ao simular telemetria', {
+        timestamp: new Date().toISOString(),
+        error: _error.message,
+      });
+    }
   }
 }

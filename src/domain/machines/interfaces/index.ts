@@ -19,9 +19,11 @@ export interface IMachinesRepository {
   findByName(name: string): Promise<TSingleMachineWithArgs>;
   findById(id: string): Promise<TSingleMachineWithArgs>;
   findByStatus(status: StatusType): Promise<TMachineListResponse[]>;
+  createMachineLog(machine: TMachineListResponse, status: string): Promise<any>;
+  getMachineLogs(): Promise<any>;
 }
 
-type TMachineListResponse = {
+export type TMachineListResponse = {
   name: string;
   location: string;
   status: $Enums.Status;

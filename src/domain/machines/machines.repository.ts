@@ -4,6 +4,7 @@ import {
   IMachinesRepository,
   StatusType,
   TCreateMachine,
+  TMachineListResponse,
   TUpdateMachine,
 } from './interfaces';
 
@@ -43,5 +44,21 @@ export class MachinesRepository implements IMachinesRepository {
 
   async findByStatus(status: StatusType) {
     return this.prismaService.machine.findMany({ where: { status } });
+  }
+
+  async createMachineLog(machine: TMachineListResponse, status: string) {
+    return this.prismaService.machineLog.create({
+      data: {
+        machineName: machine.name,
+        status,
+        machine: { connect: { id: machine.id } },
+      },
+    });
+  }
+
+  async getMachineLogs() {
+    return this.prismaService.machineLog.findMany({
+      orderBy: { updatedAt: 'desc' },
+    });
   }
 }

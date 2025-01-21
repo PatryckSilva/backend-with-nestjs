@@ -46,4 +46,9 @@ export class MachinesController {
   async findById(@Param('id') machineId: string) {
     return this.machineService.executeFindById(machineId);
   }
+
+  @Get('logs')
+  async getLogs() {
+    return this.machineService.getLogs();
+  }
 }

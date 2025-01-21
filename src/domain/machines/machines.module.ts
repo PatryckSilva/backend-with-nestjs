@@ -6,11 +6,14 @@ import { MachinesController } from './machines.controller';
 import { MachinesService } from './services/machine.service';
 import { SocketGateway } from 'src/socketgateway/gateway';
 import { SocketGatewayModule } from 'src/socketgateway/gateway.module';
+import { LoggerModule } from 'src/logger/logger.module';
+import { LoggerService } from 'src/logger/logger.service';
 
 @Module({
-  imports: [InfraModule, SocketGatewayModule],
+  imports: [InfraModule, SocketGatewayModule, LoggerModule],
   providers: [
     SocketGateway,
+    LoggerService,
     MachinesService,
     PrismaService,
     {

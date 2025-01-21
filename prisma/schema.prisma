@@ -14,14 +14,24 @@ datasource db {
 }
 
 model Machine {
-  id        String   @id @default(uuid())
-  name      String
-  location  String
-  status    Status
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String       @id @default(uuid())
+  name       String
+  location   String
+  status     Status
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  MachineLog MachineLog[]
 
   @@map("machine")
+}
+
+model MachineLog {
+  id          Int      @id @default(autoincrement())
+  machineName String
+  machine     Machine  @relation(fields: [machineId], references: [id])
+  machineId   String
+  status      String
+  updatedAt   DateTime @default(now())
 }
 
 enum Status {
