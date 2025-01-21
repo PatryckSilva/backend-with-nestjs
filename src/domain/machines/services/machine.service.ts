@@ -175,8 +175,7 @@ export class MachinesService {
       });
 
       const updatedData = {
-        // Change Location here
-        location: `Random-Loc-${Math.floor(Math.random() * 100)}`,
+        location,
         status: ['OPERATING', 'MAINTENANCE', 'OFF'][
           Math.floor(Math.random() * 3)
         ] as StatusType,
