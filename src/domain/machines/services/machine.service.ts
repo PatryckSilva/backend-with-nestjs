@@ -11,10 +11,10 @@ import {
   TUpdateMachine,
 } from '../interfaces';
 import { Cron } from '@nestjs/schedule';
-import { SocketGateway } from 'src/socketgateway/gateway';
 import { MachinesValidationFieldsHelper } from '../helpers/machines-validation-fields.helpers';
 import { GetRealLocationHelper } from '../helpers/get-real-location.help';
 import { LoggerService } from 'src/logger/logger.service';
+import { SocketGateway } from 'src/infra/gateways/socket';
 
 @Injectable()
 export class MachinesService {
@@ -27,28 +27,28 @@ export class MachinesService {
   @Inject(LoggerService)
   private readonly logger: LoggerService;
 
-  async executeFindAll(status?: string) {
-    if (!status) {
-      const response = await this.machinesRepository.findAll();
-      return response;
-    }
-
-    const response = await this.machinesRepository.findByStatus(
-      status as StatusType,
-    );
-
+  async searchAll() {
+    const response = await this.machinesRepository.findAll();
     return response;
   }
 
-  async executeCreate(machineBody: TCreateMachine) {
+  async create(machineBody: TCreateMachine) {
     const { location, name, status } = machineBody;
 
-    MachinesValidationFieldsHelper.validateField(name, 'O Nome da máquina');
-    MachinesValidationFieldsHelper.validateField(
-      location,
-      'A localização da máquina',
-    );
-    MachinesValidationFieldsHelper.validateField(status, 'O status da Máquina');
+    if (!name) {
+      const message = `O nome da máquina é obrigatório`;
+      throw new BadRequestException(message);
+    }
+
+    if (!location) {
+      const message = `A localização da máquina é obrigatória`;
+      throw new BadRequestException(message);
+    }
+
+    if (!status) {
+      const message = `O status da máquina é obrigatório`;
+      throw new BadRequestException(message);
+    }
 
     const existingMachineByName =
       await this.machinesRepository.findByName(name);
@@ -62,14 +62,14 @@ export class MachinesService {
 
     const machine = await this.machinesRepository.create(machineBody);
 
-    const allMachines = await this.executeFindAll();
+    const allMachines = await this.searchAll();
 
     this.socketGateway.server.emit('MachineList', allMachines);
 
     return machine;
   }
 
-  async executeUpdateStatus({
+  async updateStatusAndLocation({
     machineId,
     fieldsToUpdate,
   }: {
@@ -77,10 +77,7 @@ export class MachinesService {
     fieldsToUpdate: TUpdateMachine;
   }) {
     if (!machineId) {
-      MachinesValidationFieldsHelper.validateField(
-        machineId,
-        'O Id da máquina',
-      );
+      throw new BadRequestException('O Id da máquina é obrigatório');
     }
 
     const machineExists = await this.machinesRepository.findById(machineId);
@@ -113,7 +110,7 @@ export class MachinesService {
     return updatedMachine;
   }
 
-  async executeFindByName(name: string) {
+  async searchByName(name: string) {
     if (!name) {
       throw new BadRequestException('Nome é obrigatório');
     }
@@ -129,7 +126,7 @@ export class MachinesService {
     return response;
   }
 
-  async executeFindById(id: string) {
+  async searchById(id: string) {
     if (!id) {
       throw new BadRequestException('Nome é obrigatório');
     }
@@ -145,8 +142,8 @@ export class MachinesService {
     return response;
   }
 
-  async findRandomMachine() {
-    const response = await this.executeFindAll();
+  async selectRandomMachine() {
+    const response = await this.searchAll();
     if (response.length === 0) return null;
 
     const randomIndex = Math.floor(Math.random() * response.length);
@@ -161,7 +158,7 @@ export class MachinesService {
   @Cron('*/5 * * * * *')
   async simulateTelemetry() {
     try {
-      const machine = await this.findRandomMachine();
+      const machine = await this.selectRandomMachine();
       if (!machine) {
         return this.socketGateway.server.emit('MachineList', []);
       }
@@ -181,7 +178,7 @@ export class MachinesService {
         ] as StatusType,
       };
 
-      const updatedMachineResponse = await this.executeUpdateStatus({
+      const updatedMachineResponse = await this.updateStatusAndLocation({
         machineId: machine.id,
         fieldsToUpdate: updatedData,
       });
@@ -190,7 +187,7 @@ export class MachinesService {
         ...updatedMachineResponse,
       });
 
-      const allMachines = await this.executeFindAll();
+      const allMachines = await this.searchAll();
 
       this.socketGateway.server.emit('MachineList', allMachines);
 

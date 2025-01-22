@@ -18,7 +18,6 @@ export interface IMachinesRepository {
   ): Promise<TMachineUpdateOrCreateResponse>;
   findByName(name: string): Promise<TSingleMachineWithArgs>;
   findById(id: string): Promise<TSingleMachineWithArgs>;
-  findByStatus(status: StatusType): Promise<TMachineListResponse[]>;
   createMachineLog(machine: TMachineListResponse, status: string): Promise<any>;
   getMachineLogs(): Promise<any>;
 }

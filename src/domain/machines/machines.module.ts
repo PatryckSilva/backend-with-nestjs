@@ -4,13 +4,12 @@ import { PrismaService } from '../../infra/prisma/prisma.service';
 import { MachinesRepository } from './machines.repository';
 import { MachinesController } from './machines.controller';
 import { MachinesService } from './services/machine.service';
-import { SocketGateway } from 'src/socketgateway/gateway';
-import { SocketGatewayModule } from 'src/socketgateway/gateway.module';
 import { LoggerModule } from 'src/logger/logger.module';
 import { LoggerService } from 'src/logger/logger.service';
+import { SocketGateway } from 'src/infra/gateways/socket';
 
 @Module({
-  imports: [InfraModule, SocketGatewayModule, LoggerModule],
+  imports: [InfraModule, LoggerModule],
   providers: [
     SocketGateway,
     LoggerService,

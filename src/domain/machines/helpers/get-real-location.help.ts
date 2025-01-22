@@ -9,6 +9,7 @@ export class GetRealLocationHelper {
     randomLng: string;
   }) {
     try {
+      // TODO: remove hardcoded key
       const response = await axios.get(
         `https://api.opencagedata.com/geocode/v1/json?q=${randomLat}+${randomLng}&key=66a92e8d6adf40339089dccaae9403e6`,
       );
