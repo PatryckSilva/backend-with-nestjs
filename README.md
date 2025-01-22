@@ -1,17 +1,19 @@
 ### Como Rodar o Backend:
 
-1. Necessita abrir um terminal, e rodar o docker com:
+1. Necessita abrir um terminal, e instalar as dependências com:
+   `yarn`
 
-linux:
-`sudo docker compose up --build`
+2. Rodamos o docker com:
+   linux:
+   `sudo docker compose up --build`
 
-windows precisará do docker desktop, e rodar o comando:
-`docker compose up --build`
+   windows precisará do docker desktop, e rodar o comando:
+   `docker compose up --build`
 
-2. Após rodar o comando acima, e buildar o projeto, ele estará disponível em:
+3. Após rodar o comando acima, e buildar o projeto, ele estará disponível em:
    `http://localhost:5000/`
 
-3. Funcionalidades:
+4. Funcionalidades:
 
 - [✅] Cadastro de Máquina;
 - [✅] Listagem de Máquinas;
